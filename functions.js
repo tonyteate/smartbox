@@ -13,7 +13,8 @@ function checkitout(t) {
     var content = t.val();
     if (!$.trim(content)){
         fromval = false;
-        content = t.text();
+        content = t.getPreText();
+        console.log(content);
     }
 
     //console.log(content);
@@ -36,8 +37,9 @@ function checkitout(t) {
         if (fromval){
             t.val(content);
         }else{
-            t.text(content);
+            t.html(htmlForTextWithEmbeddedNewlines(content));
         }
+        setEndOfContenteditable(t);        
     }
 }
 
@@ -70,4 +72,54 @@ function smartify(){
 }
 
 
+//http://stackoverflow.com/questions/1125292
+function setEndOfContenteditable($contentEditableElement)
+{
+    if ($contentEditableElement.attr('contenteditable') !== undefined) {
+        contentEditableElement = $contentEditableElement.get(0);
+        var range,selection;
+        if(document.createRange)//Firefox, Chrome, Opera, Safari, IE 9+
+        {
+            range = document.createRange();//Create a range (a range is a like the selection but invisible)
+            range.selectNodeContents(contentEditableElement);//Select the entire contents of the element with the range
+            range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
+            selection = window.getSelection();//get the selection object (allows you to change selection)
+            selection.removeAllRanges();//remove any selections already made
+            selection.addRange(range);//make the range you have just created the visible selection
+        }
+        else if(document.selection)//IE 8 and lower
+        {      
+            range = document.body.createTextRange();//Create a range (a range is a like the selection but invisible)
+            range.moveToElementText(contentEditableElement);//Select the entire contents of the element with the range
+            range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
+            range.select();//Select the range (make it the visible selection
+        }
+    }
+}
+
+//http://stackoverflow.com/questions/4535888
+function htmlForTextWithEmbeddedNewlines(text) {
+    var htmls = [];
+    var lines = text.split(/\n/);
+    // The temporary <div/> is to perform HTML entity encoding reliably.
+    //
+    // document.createElement() is *much* faster than jQuery('<div/>')
+    // http://stackoverflow.com/questions/268490/
+    //
+    // You don't need jQuery but then you need to struggle with browser
+    // differences in innerText/textContent yourself
+    var tmpDiv = jQuery(document.createElement('div'));
+    for (var i = 0 ; i < lines.length ; i++) {
+        htmls.push(tmpDiv.text(lines[i]).html());
+    }
+    return htmls.join("<br>");
+}
+
+//http://stackoverflow.com/questions/3455931
+$.fn.getPreText = function () {
+    var ce = $("<pre />").html(this.html());
+    ce.find("div").replaceWith(function() { return "\n" + this.innerHTML; });
+
+    return ce.text();
+};
 
