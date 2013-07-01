@@ -1,0 +1,26 @@
+{
+  "manifest_version": 2,
+
+  "name": "Smartbox α",
+  "description": "Turn any textbox into a calculator.",
+  "version": "0.3.1",
+
+  "icons": { 
+    "16": "icon_16.png",
+    "48": "icon_48.png",
+    "128": "icon_128.png"
+    },
+
+  "permissions": [
+    "activeTab"
+  ],
+
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+
+  "browser_action": {
+    "default_icon": "icon_19.png"
+  }
+}
