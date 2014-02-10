@@ -1,6 +1,5 @@
 var timeout = null;
-var pattern = /-?\$?(?:\d*\.\d{1,2}|\d+)[\+\/\*\-]-?\$?(?:\d*\.\d{1,2}|\d+)/g;
-//decimal regex source: http://stackoverflow.com/q/468655
+var pattern = /([\+\/\*\-]?\(?(-?\$?(?:\d*\.\d{1,2}|\d+))+\)?)+/g;
 
 var timedcheck = function () {
     var t = $(this);
@@ -11,35 +10,38 @@ var timedcheck = function () {
 function checkitout(t) {
     var fromval = true; 
     var content = t.val();
-    if (!$.trim(content)){
+    if (!$.trim(content)){ // think I'm checking for contentEditable here, should actually do that
         fromval = false;
         content = t.getPreText();
-        console.log(content);
     }
 
-    //console.log(content);
+    console.log(content);
 
     var exps = content.match(pattern);
     if (exps) {
-        var el = exps[0];
-        var dsig = (el.search(/\$/) > -1);
-        var el_esc = el.replace(/\$/g, "");
-        //console.log(el_esc);
-        var ans = math.round(math.eval(el_esc), 2);
-        if (dsig) {
-            if (ans < 0){
-                ans = ans.toString().replace("-","-$");
+        console.log(exps);
+        for (var i=0; i<exps.length; i++){
+            var el = exps[i];
+            var dsig = (el.search(/\$/) > -1);
+            var el_esc = el.replace(/\$/g, "");
+            //console.log(el_esc);
+            var ans = math.round(math.eval(el_esc), 2);
+            if (dsig) {
+                if (ans < 0){
+                    ans = ans.toString().replace("-","-$");
+                }else{
+                    ans = "$" + ans;
+                }
+            }
+            content = content.replace(el, ans);
+            if (fromval){
+                t.val(content);
             }else{
-                ans = "$" + ans;
+                t.html(htmlForTextWithEmbeddedNewlines(content));
             }
         }
-        content = content.replace(el, ans);
-        if (fromval){
-            t.val(content);
-        }else{
-            t.html(htmlForTextWithEmbeddedNewlines(content));
-        }
-        setEndOfContenteditable(t);        
+
+        setEndOfContenteditable(t);
     }
 }
 
@@ -101,13 +103,6 @@ function setEndOfContenteditable($contentEditableElement)
 function htmlForTextWithEmbeddedNewlines(text) {
     var htmls = [];
     var lines = text.split(/\n/);
-    // The temporary <div/> is to perform HTML entity encoding reliably.
-    //
-    // document.createElement() is *much* faster than jQuery('<div/>')
-    // http://stackoverflow.com/questions/268490/
-    //
-    // You don't need jQuery but then you need to struggle with browser
-    // differences in innerText/textContent yourself
     var tmpDiv = jQuery(document.createElement('div'));
     for (var i = 0 ; i < lines.length ; i++) {
         htmls.push(tmpDiv.text(lines[i]).html());
@@ -119,7 +114,6 @@ function htmlForTextWithEmbeddedNewlines(text) {
 $.fn.getPreText = function () {
     var ce = $("<pre />").html(this.html());
     ce.find("div").replaceWith(function() { return "\n" + this.innerHTML; });
-
     return ce.text();
 };
 
