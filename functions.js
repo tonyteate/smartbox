@@ -49,14 +49,21 @@ function smartify(){
     var extid = chrome.i18n.getMessage("@@extension_id"); //-> background.js?
     var classname = "smartbox_" + extid;
     var boxes = jQuery("."+classname);
+
     console.log("smartify() functions");
+
     if (boxes.length == 0){
 
         var iframe = jQuery('iframe');
-        jQuery("textarea,input,[contenteditable]", iframe.contents())
-            .css('backgroundColor', '#F8F8F8')
-            .addClass(classname)
-            .on('keyup', timedcheck);
+
+        try{
+            jQuery("textarea,input,[contenteditable]", iframe.contents())
+                .css('backgroundColor', '#F8F8F8')
+                .addClass(classname)
+                .on('keyup', timedcheck);
+        }catch(err){
+            console.log("err: "+err);
+        }
 
         jQuery("textarea,input,[contenteditable]")
             .css('backgroundColor', '#F8F8F8')
